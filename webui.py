@@ -16,12 +16,16 @@ import modules.meta_parser
 import args_manager
 import copy
 import launch
+import extensions.plugins.scripts.old_six_prompt as old_six_prompt
 
 from modules.sdxl_styles import legal_style_names
 from modules.private_logger import get_current_html_path
 from modules.ui_gradio_extensions import reload_javascript
 from modules.auth import auth_enabled, check_auth
 from modules.util import is_json
+
+# 假设插件需要初始化
+plugin_instance = old_six_prompt.Script()
 
 def get_task(*args):
     args = list(args)
@@ -91,7 +95,7 @@ def generate_clicked(task: worker.AsyncTask):
 
 reload_javascript()
 
-title = f'Fooocus {fooocus_version.version}'
+title = f'基于扩散模型的虚拟画作生成器'
 
 if isinstance(args_manager.args.preset, str):
     title += ' ' + args_manager.args.preset
@@ -143,6 +147,16 @@ with shared.gradio_root:
 
                     stop_button.click(stop_clicked, inputs=currentTask, outputs=currentTask, queue=False, show_progress=False, _js='cancelGenerateForever')
                     skip_button.click(skip_clicked, inputs=currentTask, outputs=currentTask, queue=False, show_progress=False)
+
+                     # 将插件的 UI 组件添加到布局中
+                    plugin_ui_components = plugin_instance.ui(is_img2img=False)
+                    for component in plugin_ui_components:
+                     shared.gradio_root.add(component)  # 添加插件组件
+
+
+
+
+            
             with gr.Row(elem_classes='advanced_check_row'):
                 input_image_checkbox = gr.Checkbox(label='Input Image', value=False, container=False, elem_classes='min_check')
                 advanced_checkbox = gr.Checkbox(label='Advanced', value=modules.config.default_advanced_checkbox, container=False, elem_classes='min_check')
